@@ -1,7 +1,6 @@
 #pragma once
 
-//#define I2C_SDA2 PH_12
-//#define I2C_SCL2 PH_11
+#if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)
 #define MOTOR_Z_FG PJ_10
 #define MOTOR_Z_SPEED PA_8
 #define MOTOR_Z_DIR PC_6
@@ -10,10 +9,25 @@
 #define MOTOR_Y_SPEED PC_7
 #define MOTOR_Y_DIR PJ_7
 
-//#define MOTOR_X_FG PI_6
 #define MOTOR_X_FG PJ_11
 #define MOTOR_X_SPEED PH_6
 #define MOTOR_X_DIR PK_1
+#else
+
+#define MOTOR_Z_FG 3
+#define MOTOR_Z_SPEED 13
+#define MOTOR_Z_DIR 14
+
+#define MOTOR_Y_FG 3
+#define MOTOR_Y_SPEED 13
+#define MOTOR_Y_DIR 14
+
+#define MOTOR_X_FG 3
+#define MOTOR_X_SPEED 13
+#define MOTOR_X_DIR 14
+
+#endif
+
 
 #define IMUADDRESS1  0x4B    //==75
 //#define IMUADDRESS2  0x4A
@@ -33,7 +47,6 @@
 #define TEMP_Z2 0x49
 #define TEMP_OBC 0x4A
 //#define TEMP_ADCS 0x4B
-
 
 #define MAG_ADDRESS_X  0x60
 #define MAG_ADDRESS_Y  0x61

@@ -1,6 +1,7 @@
 #pragma once
 #include "defs.h"
 
+#include <messages.h>
 #include <state_lowpower.h>
 #include <state_detumble.h>
 #include <state_adcs.h>
@@ -11,27 +12,23 @@
 
 #include <system_imu.h>
 #include <system_delay.h>
-#include "system_irarray.h"
-#include "system_reactionwheel.h"
-#include "system_magtorquer.h"
-#include "system_temperature.h"
-#include "radio.h"
-#include "messages.h"
+#include <system_irarray.h>
+#include <system_reactionwheel.h>
+#include <system_magtorquer.h>
+#include <system_temperature.h>
+#include <radio.h>
+#include <messages.h>
 #include <mdrive.h>
 #include <fhmotor.h>
-#include "system_mgr.h"
-#include "phone.h"
-#include "ceps.h"
+#include <system_mgr.h>
+#include <phone.h>
+#include <ceps.h>
+
+#include <system_pins.h>
+#include <system_gps.h>
+
+
 //#include "system_example.h"
-#include "system_pins.h"
-
-#if !(defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7))
-  #include "system_gps.h"
-#endif  
-
-
-
-#include "messages.h"
 
 class CSatellite:public CSystemObject {
   public:
@@ -48,7 +45,8 @@ class CSatellite:public CSystemObject {
 	CADCSState state_adcs;   //3
   CPhoneState state_phone;
 
-#if !(defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7))
+#if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7) 
+#else 
    CGPS gps;
 #endif  
 
@@ -64,7 +62,6 @@ class CSatellite:public CSystemObject {
   
   CRW RW;
   CMagTorquer MT;
-
 
   CPhone Phone;  
   
@@ -102,4 +99,3 @@ class CSatellite:public CSystemObject {
 };
 
 CSatellite* getSatellite();
-TwoWire *getWire2();

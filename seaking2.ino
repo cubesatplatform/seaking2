@@ -1,14 +1,19 @@
 #include "defs.h"
 #include "cubesat.h"
-#include "satwatchdog.h"
+#include <satwatchdog.h>
 
 #include <map>
 #include <list>
 #include <bitset>
 
+
+#if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)
+#else
+  #define Wire2 Wire
+#endif
 #ifdef TTGO1
 #include <axp20x.h>
-#include "boards.h"
+#include <boards.h>
 #endif
 
 

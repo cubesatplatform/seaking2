@@ -348,6 +348,40 @@ void CSatellite::updateRadios(CMsg &msg){
 
 
 void CSatellite::sendBeacon(){  
-  CMsg m;
-  addTransmitList(m);
+  CMsg msg;
+  msg.setParameter("STATE",getSatState());
+  msg.setParameter("TIME",getTime());
+
+  CEPS *pEPS=(CEPS *)getSystem("EPS");
+  
+  if(pEPS!=NULL){
+    CMsg m=pEPS->m;
+    
+    msg.setParameter("BatteryVolt",m.getParameter("BatteryVolt"));
+    msg.setParameter("BatteryCrnt",m.getParameter("BatteryCrnt"));
+    msg.setParameter("BatTemp1",m.getParameter("BatTemp1"));
+    msg.setParameter("XVolt",m.getParameter("XVolt"));
+    msg.setParameter("YVolt",m.getParameter("YVolt"));
+    msg.setParameter("ZVolt",m.getParameter("ZVolt"));
+  }
+
+  CRadio *pRadio=(CRadio *)getSystem("RADIO");
+  CRadio *pRadio2=(CRadio *)getSystem("RADIO2");
+  if(pRadio!=NULL){
+    msg.setParameter("R_STATE",pRadio->State());
+  }
+  
+  if(pRadio2!=NULL){
+    msg.setParameter("R2_STATE",pRadio2->State());
+  }
+
+  CTemperatureObject *pTemp=(CTemperatureObject *)getSystem("TEMPOBC","TEMPOBC");  
+  if(pTemp!=NULL) {
+    
+    pTemp->setup();
+    pTemp->loop();
+    msg.setParameter("TEMPOBC",pTemp->getTemp()); 
+  }
+
+  addTransmitList(msg);
 }
