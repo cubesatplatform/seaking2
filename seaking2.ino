@@ -8,6 +8,7 @@
 
 
 #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)
+  #include "mbed.h"
 #else
   #define Wire2 Wire
 #endif
@@ -19,6 +20,8 @@
 
 ////////////////////////  DONT WRITE TO SERIAL PORT BEFORE ITS DECLARED  -----   NO WRITING TO CONSOLE IN CONSTRUCTORS OF SYSTEMS THAT ARE BELOW ----------------------////////////////////////////////////////////////
 ////////////////////////REACTIONWHEEL #include <mbed.h>  IS CAUSE OF SPI ISSUES ---- Never include that!  ////////////////////////////////
+
+#define WATCHDOGWAIT 32760  //This is the Max the Portenta can do
 
 std::map<std::string,CSystemObject *> SysMap;
 std::map<std::string, PinName> Pins;
@@ -80,7 +83,8 @@ void setup() { // leave empty
   digitalWrite(PC_13,HIGH);
   digitalWrite(PI_4,HIGH);
   digitalWrite(PJ_8,HIGH);
-  mbed_reset_reboot_count();
+  //mbed_reset_reboot_count();
+  mbed::Watchdog::get_instance().start(WATCHDOGWAIT); 
 
   #endif
   }
@@ -117,18 +121,36 @@ void superSleepRadio(){
   sat.Radio2.sleep(false);
 }
 
+
 void loop() {  
   mysetup(); 
   unsigned count=0;
   CMsg msg;
   msg.setSYS("BASE");
-  msg.setACT("Hello");   
+  msg.setACT("This is Major Tom to Ground Control");   
   sat.addTransmitList(msg);
+
+
+/*
+  msg.setSYS("MGR");
+  msg.setACT("ADDTASK");
+  msg.setParameter("_SYS","SAT");
+  msg.setParameter("_ACT","BEACON");   
+  msg.setParameter("INTERVAL",15000);
+  msg.setParameter("START",0);
+  msg.setParameter("STOP",(long) STOPTASKMAX);
+  msg.setREFID();
+  sat.addMessageList(msg);
+  */
 
   while(1){   
     sat.loop();  
     count++; 
     if(count>4*WATCHDOG_LOOP_COUNT){  
+      #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)
+        mbed::Watchdog::get_instance().kick();   
+      #endif
+          
       CMsg m;
       m.setSYS(sat.pstate->Name()); 
       #if defined(TTGO) || defined(TTGO1)
@@ -139,5 +161,6 @@ void loop() {
       writeconsoleln(m.serializeout());
       superSleepRadio();
     }  
+   
   }      
 }
