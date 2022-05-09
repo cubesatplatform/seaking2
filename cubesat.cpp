@@ -28,7 +28,7 @@ void CSatellite::newState(CMsg &msg) {
       if (s == "DEPLOY")  tmpstate = &state_deployantenna;
       if (s == "ADCS")  tmpstate = &state_adcs;
       if (s == "DETUMBLE")  tmpstate = &state_detumble;
-      if (s == "PHONE")  tmpstate = &state_phone;
+      if (s == "PAYLOAD")  tmpstate = &state_payload;
 
 
       if(tmpstate!=pstate){  //Don't reset if you are already in that state        
@@ -64,6 +64,7 @@ void CSatellite::newMsg(CMsg &msg) {
     if(act=="COUNTS") readCounts();   
     if(act=="BEACON") sendBeacon();   
     if(act=="UPDATERADIOS") updateRadios(msg);
+    if(act=="ADDSYSTEM") addSystem(msg);
      
     if((act=="NORMAL") ||(act=="LOWPOWER") ||(act=="DEPLOY") ||(act=="DETUMBLE") ||(act=="ADCS")||(act=="PHONE")){
       newState(msg);
@@ -79,6 +80,29 @@ void CSatellite::newMsg(CMsg &msg) {
   } 
 }
 
+
+
+void CSatellite::addSystem(CMsg &msg) {
+
+  std::string strstate=msg.getParameter("STATE");
+  std::string strsystem=msg.getParameter("SYSTEM");
+
+  CSystemObject *psys=getSystem(strsystem.c_str(),"addSystem(CMsg &msg)  System");
+  CStateObj *pstate=(CStateObj *)getSystem(strstate.c_str(),"addSystem(CMsg &msg)  State");
+
+/*
+  if (strstate == "LOWPOWER")  pstate = &state_lowpower;
+  if (strstate == "NORMAL")  pstate = &state_normal;
+  if (strstate == "DEPLOY")  pstate = &state_deployantenna;
+  if (strstate == "ADCS")  pstate = &state_adcs;
+  if (strstate == "DETUMBLE")  pstate = &state_detumble;
+  if (strstate == "PHONE")  pstate = &state_payload;
+*/
+   
+  if((psys!=nullptr)&&(pstate!=nullptr)){    
+     pstate->addSystem(psys);    
+    }
+}
 
 void CSatellite::stats(){  
   CMsg msg;
@@ -98,15 +122,19 @@ void CSatellite::stats(){
 void CSatellite::setup() {    //Anything not in a loop must be setup manually  or have setup done automatically when called
   Radio.Name("RADIO");
   Radio.setTransmitter(true);
-  Radio2.Name("RADIO2");
-  Radio2.setTransmitter(false);
 
-  //state_lowpower.addSystem(&Delay);   //May be a bad idea!!!
-  state_core.addSystem(&Radio);
-  state_core.addSystem(&Radio2);
+  #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)
+    Radio2.Name("RADIO2");
+    Radio2.setTransmitter(false);
+    state_core.addSystem(&Radio2);
+  #endif
+
+  state_core.addSystem(&Radio);  
   state_core.addSystem(&Mgr);  
+  
+  state_payload.addSystem(&Phone);  
   //state_core.addSystem(&RW);    //RW needs to be in core because if you are running it you cant switch states and turn it off
-  state_phone.addSystem(&Phone);  
+  //state_lowpower.addSystem(&Delay);   //May be a bad idea!!!
 
   IMUI2C.Name("IMUI2C");   
   IMUSPI.Name("IMUSPI");
@@ -133,15 +161,14 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   MotorY.config(MOTOR_Y_SPEED,MOTOR_Y_FG,MOTOR_Y_DIR);
   MotorZ.config(MOTOR_Z_SPEED,MOTOR_Z_FG,MOTOR_Z_DIR);
 
-  
+
   TempX1.Name("TEMPX1");
   TempX2.Name("TEMPX2");
   TempY1.Name("TEMPY1");
   TempY2.Name("TEMPY2");
   TempZ1.Name("TEMPZ1");
   TempZ2.Name("TEMPZ2");
-  TempOBC.Name("TEMPOBC");
-  //TempADCS.Name("TEMPADCS");
+  TempOBC.Name("TEMPOBC");  
 
   #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)    
     
@@ -149,31 +176,19 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   IRX2.config(IRARRAY_ADDRESS_X2,&Wire);
   IRY1.config(IRARRAY_ADDRESS_Y1,&Wire1);
   IRY2.config(IRARRAY_ADDRESS_Y2,&Wire1);
-//  IRZ1.config(IRARRAY_ADDRESS_Z1,getWire2());
-//  IRZ2.config(IRARRAY_ADDRESS_Z2,getWire2());
-
   IRZ1.config(IRARRAY_ADDRESS_Z1,&Wire2);
   IRZ2.config(IRARRAY_ADDRESS_Z2,&Wire2);
 
-
-
   IMUI2C.config(IMUADDRESS1,&Wire);
+
   TempOBC.config(TEMP_OBC,&Wire);
-  //TempADCS.config(TEMP_ADCS,&Wire);
   TempX1.config(TEMP_X1,&Wire);
   TempX2.config(TEMP_X2,&Wire);
   TempY1.config(TEMP_Y1,&Wire1);
   TempY2.config(TEMP_Y2,&Wire1);
-  //TempZ1.config(TEMP_Z1,getWire2());
-  //TempZ2.config(TEMP_Z2,getWire2());
-
   TempZ1.config(TEMP_Z1,&Wire2);
   TempZ2.config(TEMP_Z2,&Wire2);
 
-    
-//  MagX.config(MAG_ADDRESS_X,getWire2());  
-//  MagY.config(MAG_ADDRESS_Y,getWire2());  
-//  MagZ.config(MAG_ADDRESS_Z,getWire2());
 
   MagX.config(MAG_ADDRESS_X,&Wire2);  
   MagY.config(MAG_ADDRESS_Y,&Wire2);  
@@ -220,7 +235,7 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
     state_adcs.addSystem(&MotorY);
     state_adcs.addSystem(&MotorZ);
     
-    state_phone.addSystem(&Phone);
+    state_payload.addSystem(&Phone);
  
 
 

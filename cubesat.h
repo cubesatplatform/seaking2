@@ -8,7 +8,7 @@
 #include <state_normal.h>
 #include <state_deployantenna.h>
 #include <state_core.h>
-#include <state_phone.h>
+#include <state_payload.h>
 
 #include <system_imu.h>
 #include <system_delay.h>
@@ -43,7 +43,7 @@ class CSatellite:public CSystemObject {
 	CNormalState state_normal;        //1
 	CDeployAntennaState state_deployantenna;   //2
 	CADCSState state_adcs;   //3
-  CPhoneState state_phone;
+  CPayloadState state_payload;
 
 #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7) 
 #else 
@@ -96,6 +96,7 @@ class CSatellite:public CSystemObject {
   void temp();
 	void MsgPump();
   void updateRadios(CMsg &msg);
+  void addSystem(CMsg &msg);
 };
 
 CSatellite* getSatellite();
