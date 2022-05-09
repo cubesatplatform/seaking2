@@ -43,8 +43,6 @@ void CSatellite::newState(CMsg &msg) {
 
 
 
-
-
 #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)
 void resetFunc(){
   NVIC_SystemReset();
@@ -189,7 +187,6 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   TempZ1.config(TEMP_Z1,&Wire2);
   TempZ2.config(TEMP_Z2,&Wire2);
 
-
   MagX.config(MAG_ADDRESS_X,&Wire2);  
   MagY.config(MAG_ADDRESS_Y,&Wire2);  
   MagZ.config(MAG_ADDRESS_Z,&Wire2);
@@ -204,23 +201,22 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
     state_normal.addSystem(&IRZ1);
     state_normal.addSystem(&IRZ2);
 
-
     state_normal.addSystem(&IRX1);
     state_normal.addSystem(&Example);    
       
- //   state_normal.addSystem(&IMUI2C);   
- //   state_normal.addSystem(&IMUSPI);   
+    state_normal.addSystem(&IMUI2C);   
+    state_normal.addSystem(&IMUSPI);   
       
- //   state_detumble.addSystem(&IMUI2C);   
- //   state_detumble.addSystem(&IMUSPI);   
+    state_detumble.addSystem(&IMUI2C);   
+    state_detumble.addSystem(&IMUSPI);   
       
-  //  state_normal.addSystem(&Temperature);  
-  //  state_normal.addSystem(&TempX1);     
-  //  state_normal.addSystem(&TempX2);     
-  //  state_normal.addSystem(&TempY1);     
-  //  state_normal.addSystem(&TempY2);     
-  //  state_normal.addSystem(&TempZ1);     
-  //  state_normal.addSystem(&TempZ2);     
+    state_normal.addSystem(&Temperature);  
+    state_normal.addSystem(&TempX1);     
+    state_normal.addSystem(&TempX2);     
+    state_normal.addSystem(&TempY1);     
+    state_normal.addSystem(&TempY2);     
+    state_normal.addSystem(&TempZ1);     
+    state_normal.addSystem(&TempZ2);     
   
     state_detumble.addSystem(&MT);
  
@@ -229,18 +225,16 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
     state_adcs.addSystem(&MagX);
     state_adcs.addSystem(&MagY);
     state_adcs.addSystem(&MagZ);
- // state_adcs.addSystem(&IMUI2C);   
- // state_adcs.addSystem(&IMUSPI);
+    state_adcs.addSystem(&IMUI2C);   
+    state_adcs.addSystem(&IMUSPI);
     state_adcs.addSystem(&MotorX);
     state_adcs.addSystem(&MotorY);
     state_adcs.addSystem(&MotorZ);
     
     state_payload.addSystem(&Phone);
  
-
-
-// state_core.addSystem(&Radio2);
-// state_core.addSystem(&Power);
+   state_core.addSystem(&Radio2);
+   state_core.addSystem(&Power);
    state_core.setup();  
   
   CMsg msg;
@@ -265,9 +259,7 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   Mgr.addMessageList(msg);
 */
 
-
   readCounts();
-  
 }
 
 
@@ -302,8 +294,6 @@ void CSatellite::readCounts() {
   Mgr.addTransmitList(msg);   
   #endif
 }
-
-
 
 
 

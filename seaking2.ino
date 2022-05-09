@@ -40,21 +40,10 @@ std::string getSatState() { return sat.pstate->Name(); }
 
 
 
-void transmitError(const char *tmp){
-  writeconsole("Critical Error: ");  writeconsoleln(tmp);
-  CMsg msg;
-  msg.setACT("TRANSMITDATA");
-  msg.Parameters["ERROR"]=tmp;    
-
-  sat.MSG.TransmitList.push_back(msg); 
-} 
-
  
-void setup() { // leave empty 
-  
+void setup() { 
   Serial.begin(115200);
   long tt=getTime();
-//  return;
   while (!Serial){
     if(getTime()>tt+10000)
       break;
@@ -62,7 +51,6 @@ void setup() { // leave empty
   Wire.begin();                                             //NEED to turn I2C ON   Otherwise CRASH
   Wire1.begin();
   Wire2.begin();
-
    
   #ifdef TTGO1
    initBoard();   
@@ -130,7 +118,6 @@ void loop() {
   msg.setACT("This is Major Tom to Ground Control");   
   sat.addTransmitList(msg);
 
-
 /*
   msg.setSYS("MGR");
   msg.setACT("ADDTASK");
@@ -160,7 +147,6 @@ void loop() {
       count=0;        
       writeconsoleln(m.serializeout());
       superSleepRadio();
-    }  
-   
+    }     
   }      
 }
