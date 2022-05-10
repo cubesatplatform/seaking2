@@ -118,17 +118,8 @@ void loop() {
   msg.setACT("This is Major Tom to Ground Control");   
   sat.addTransmitList(msg);
 
-/*
-  msg.setSYS("MGR");
-  msg.setACT("ADDTASK");
-  msg.setParameter("_SYS","SAT");
-  msg.setParameter("_ACT","BEACON");   
-  msg.setParameter("INTERVAL",15000);
-  msg.setParameter("START",0);
-  msg.setParameter("STOP",(long) STOPTASKMAX);
-  msg.setREFID();
-  sat.addMessageList(msg);
-  */
+
+
 
   while(1){   
     sat.loop();  

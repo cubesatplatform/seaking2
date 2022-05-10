@@ -20,27 +20,30 @@ CSatellite::CSatellite() {
 
 
 void CSatellite::newState(CMsg &msg) {    
-    std::string s=msg.getACT();
-    if(s.size()>1){
-      CStateObj *tmpstate=pstate;
-      if (s == "LOWPOWER")  tmpstate = &state_lowpower;
-      if (s == "NORMAL")  tmpstate = &state_normal;
-      if (s == "DEPLOY")  tmpstate = &state_deployantenna;
-      if (s == "ADCS")  tmpstate = &state_adcs;
-      if (s == "DETUMBLE")  tmpstate = &state_detumble;
-      if (s == "PAYLOAD")  tmpstate = &state_payload;
+  std::string s=msg.getVALUE();
+  if(s.size()>1){
+    CStateObj *tmpstate=(CStateObj *)getSystem(s.c_str(),"CSatellite::newState(CMsg &msg)");
 
-
-      if(tmpstate!=pstate){  //Don't reset if you are already in that state        
-        pstate->exit();
-        pstate=tmpstate;
-        pstate->stateMsg(msg);  //Passes parameters of what you want the state to do
-        pstate->enter();
-      }
+    if((tmpstate!=NULL)&&(tmpstate!=pstate)){  //Don't reset if you are already in that state        
+      pstate->exit();
+      pstate=tmpstate;
+      pstate->stateMsg(msg);  //Passes parameters of what you want the state to do
+      pstate->enter();
     }
-
   }
+}
 
+void CSatellite::addState(CMsg &msg){
+  std::string s=msg.getVALUE();
+  long lmax=msg.getParameter("MAXTIME",3*TIMEORBIT);
+  if(s.size()>1){
+    CStateObj *tmpstate=(CStateObj *)getSystem(s.c_str(),"CSatellite::addState(CMsg &msg)");
+    CStateObj *pSO=new CStateObj();
+    pSO->Name(s);
+    pSO->setForever(false);
+    pSO->setMaxTime(lmax);
+  }  
+}
 
 
 #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)
@@ -56,47 +59,33 @@ void CSatellite::newMsg(CMsg &msg) {
   std::string act=msg.getACT();
 
   if(sys=="SAT") {    
-    
     if(act=="STATS") stats();
     if(act=="RESET") resetFunc();
     if(act=="COUNTS") readCounts();   
     if(act=="BEACON") sendBeacon();   
     if(act=="UPDATERADIOS") updateRadios(msg);
     if(act=="ADDSYSTEM") addSystem(msg);
-     
-    if((act=="NORMAL") ||(act=="LOWPOWER") ||(act=="DEPLOY") ||(act=="DETUMBLE") ||(act=="ADCS")||(act=="PHONE")){
-      newState(msg);
-    }
-    return;
-  } 
+    if(act=="ADDSTATE") addState(msg);
+    if(act=="NEWSTATE") newState(msg);
+    }    
+ 
     else{
-    CSystemObject *psys=getSystem(sys.c_str(),"CSatellite::newMsg(CMsg &msg)");
-    if(psys!=nullptr){    
-       psys->newMsg(msg);       
-      }
-    return;  
-  } 
+      CSystemObject *psys=getSystem(sys.c_str(),"CSatellite::newMsg(CMsg &msg)");
+      if(psys!=nullptr){    
+         psys->newMsg(msg);       
+        }    
+    } 
 }
 
 
 
 void CSatellite::addSystem(CMsg &msg) {
-
   std::string strstate=msg.getParameter("STATE");
   std::string strsystem=msg.getParameter("SYSTEM");
 
   CSystemObject *psys=getSystem(strsystem.c_str(),"addSystem(CMsg &msg)  System");
   CStateObj *pstate=(CStateObj *)getSystem(strstate.c_str(),"addSystem(CMsg &msg)  State");
-
-/*
-  if (strstate == "LOWPOWER")  pstate = &state_lowpower;
-  if (strstate == "NORMAL")  pstate = &state_normal;
-  if (strstate == "DEPLOY")  pstate = &state_deployantenna;
-  if (strstate == "ADCS")  pstate = &state_adcs;
-  if (strstate == "DETUMBLE")  pstate = &state_detumble;
-  if (strstate == "PHONE")  pstate = &state_payload;
-*/
-   
+  
   if((psys!=nullptr)&&(pstate!=nullptr)){    
      pstate->addSystem(psys);    
     }
@@ -118,6 +107,37 @@ void CSatellite::stats(){
 }
 
 void CSatellite::setup() {    //Anything not in a loop must be setup manually  or have setup done automatically when called
+  state_adcs.Name("ADCS");
+  state_adcs.setMaxTime(3*TIMEORBIT);
+  state_adcs.availablesystems["MT"] = true;
+  state_adcs.availablesystems["MAGX"] = true;
+  state_adcs.availablesystems["MAGY"] = true;
+  state_adcs.availablesystems["MAGZ"] = true;
+  state_adcs.availablesystems["MOTORX"] = true;
+  state_adcs.availablesystems["MOTORY"] = true;
+  state_adcs.availablesystems["MOTORZ"] = true;
+
+  state_core.Name("CORE");
+  state_core.setForever();
+
+  state_normal.Name("NORMAL");
+  state_normal.setMaxTime(NORMALMAXTIME);
+  state_normal.availablesystems["GPS"] = true;
+  state_normal.availablesystems["DATAREQUEST"] = true;
+
+  state_deployantenna.Name("DEPLOY");
+  state_deployantenna.setMaxTime(10000);
+  state_deployantenna.onEnter["ENABLEBURNWIRE"]=true;
+  state_deployantenna.onExit["DISABLEBURNWIRE"]=true;
+
+  state_lowpower.Name("LOWPOWER");
+  state_lowpower.setMaxTime(LOWPOWERMAXTIME);
+  state_lowpower.onEnter["DISABLEMAGSMOTORS"]=true;
+  state_lowpower.onEnter["DISABLEBURNWIRE"]=true;
+  state_lowpower.onEnter["DISABLESENSORS"]=true;
+  state_lowpower.onEnter["DISABLEPHONE"]=true;
+
+  
   Radio.Name("RADIO");
   Radio.setTransmitter(true);
 
@@ -133,6 +153,7 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   state_payload.addSystem(&Phone);  
   //state_core.addSystem(&RW);    //RW needs to be in core because if you are running it you cant switch states and turn it off
   //state_lowpower.addSystem(&Delay);   //May be a bad idea!!!
+
 
   IMUI2C.Name("IMUI2C");   
   IMUSPI.Name("IMUSPI");
@@ -168,7 +189,7 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   TempZ2.Name("TEMPZ2");
   TempOBC.Name("TEMPOBC");  
 
-  #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)    
+ // #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)    
     
   IRX1.config(IRARRAY_ADDRESS_X1,&Wire);
   IRX2.config(IRARRAY_ADDRESS_X2,&Wire);
@@ -190,7 +211,7 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   MagX.config(MAG_ADDRESS_X,&Wire2);  
   MagY.config(MAG_ADDRESS_Y,&Wire2);  
   MagZ.config(MAG_ADDRESS_Z,&Wire2);
-  #endif
+ // #endif
  // state_normal.addSystem(&IRX1);
  /*
       state_normal.addSystem(&IR);
@@ -259,7 +280,7 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   Mgr.addMessageList(msg);
 */
 
-  readCounts();
+readCounts();  
 }
 
 
@@ -370,6 +391,7 @@ void CSatellite::sendBeacon(){
     msg.setParameter("ZVolt",m.getParameter("ZVolt"));
   }
 
+
   CRadio *pRadio=(CRadio *)getSystem("RADIO");
   CRadio *pRadio2=(CRadio *)getSystem("RADIO2");
   if(pRadio!=NULL){
@@ -381,12 +403,11 @@ void CSatellite::sendBeacon(){
   }
 
   CTemperatureObject *pTemp=(CTemperatureObject *)getSystem("TEMPOBC","TEMPOBC");  
-  if(pTemp!=NULL) {
-    
-    pTemp->setup();
+  
+  if(pTemp!=NULL) {    
+    pTemp->setup();    
     pTemp->loop();
     msg.setParameter("TEMPOBC",pTemp->getTemp()); 
   }
-
   addTransmitList(msg);
 }
