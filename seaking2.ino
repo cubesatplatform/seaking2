@@ -32,7 +32,8 @@ std::map<std::string, std::string> I2CMap;
 CSatWatchdog satdog;
 CSatellite sat;
 
-std::string CSystemObject::_sat="ADR1";
+std::string CSystemObject::_IAM="ADR1";
+std::string CSystemObject::_defaultTO="BSX";
 unsigned long CSystemObject::_lastLowPowerMsg=0;
 CMessages* getMessages() { return &sat.MSG; }
 CSatellite* getSatellite() { return &sat; }
