@@ -9,6 +9,7 @@
 
 #include <system_imu.h>
 #include <system_delay.h>
+#include <system_relay.h>
 #include <system_irarray.h>
 #include <system_reactionwheel.h>
 #include <system_magtorquer.h>
@@ -44,19 +45,14 @@ class CSatellite:public CSystemObject {
   CStateObj state_adcs;   //3
   CStateObj state_lowpower;   //0
   
-  CDeployAntennaState state_deployantenna;   //2  
-
-  
-  CDetumbleState state_detumble;
-
-	
+  CDeployAntennaState state_deployantenna;   //2    
+  CDetumbleState state_detumble;	
   CPayloadState state_payload;
 
 #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7) 
 #else 
    CGPS gps;
 #endif  
-
 
   CSystemMgr Mgr;
   CEPS Power;
@@ -66,6 +62,7 @@ class CSatellite:public CSystemObject {
   CIMU IMUSPI;
 
   CDelay Delay;
+  CRelay Relay;
   
   CRW RW;
   CMagTorquer MT;
