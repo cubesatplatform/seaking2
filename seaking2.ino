@@ -12,6 +12,7 @@
 #else
   #define Wire2 Wire
 #endif
+
 #ifdef TTGO1
 #include <axp20x.h>
 #include <boards.h>
@@ -33,7 +34,7 @@ CSatWatchdog satdog;
 CSatellite sat;
 
 std::string CSystemObject::_IAM="ADR1";
-std::string CSystemObject::_defaultTO="BSX";
+std::string CSystemObject::_defaultTO="ALL";
 unsigned long CSystemObject::_lastLowPowerMsg=0;
 CMessages* getMessages() { return &sat.MSG; }
 CSatellite* getSatellite() { return &sat; }

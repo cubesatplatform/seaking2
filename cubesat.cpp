@@ -189,8 +189,7 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   TempZ2.Name("TEMPZ2");
   TempOBC.Name("TEMPOBC");  
 
- // #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)    
-    
+     
   IRX1.config(IRARRAY_ADDRESS_X1,&Wire);
   IRX2.config(IRARRAY_ADDRESS_X2,&Wire);
   IRY1.config(IRARRAY_ADDRESS_Y1,&Wire1);
@@ -211,74 +210,33 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   MagX.config(MAG_ADDRESS_X,&Wire2);  
   MagY.config(MAG_ADDRESS_Y,&Wire2);  
   MagZ.config(MAG_ADDRESS_Z,&Wire2);
- // #endif
- // state_normal.addSystem(&IRX1);
- /*
-      state_normal.addSystem(&IR);
-    state_normal.addSystem(&IRX1);
-    state_normal.addSystem(&IRX2);
-    state_normal.addSystem(&IRY1);
-    state_normal.addSystem(&IRY2);
-    state_normal.addSystem(&IRZ1);
-    state_normal.addSystem(&IRZ2);
 
-    state_normal.addSystem(&IRX1);
-    state_normal.addSystem(&Example);    
+/*
+  state_normal.addSystem(&IR);
+  state_normal.addSystem(&IRX1);
+  state_normal.addSystem(&IRX2);
+  state_normal.addSystem(&IRY1);
+  state_normal.addSystem(&IRY2);
+  state_normal.addSystem(&IRZ1);
+  state_normal.addSystem(&IRZ2);
+             
+  state_detumble.addSystem(&IMUI2C);   
+  state_detumble.addSystem(&IMUSPI);   
+  state_detumble.addSystem(&MT);
       
-    state_normal.addSystem(&IMUI2C);   
-    state_normal.addSystem(&IMUSPI);   
-      
-    state_detumble.addSystem(&IMUI2C);   
-    state_detumble.addSystem(&IMUSPI);   
-      
-    state_normal.addSystem(&Temperature);  
-    state_normal.addSystem(&TempX1);     
-    state_normal.addSystem(&TempX2);     
-    state_normal.addSystem(&TempY1);     
-    state_normal.addSystem(&TempY2);     
-    state_normal.addSystem(&TempZ1);     
-    state_normal.addSystem(&TempZ2);     
+  state_adcs.addSystem(&RW);
+  state_adcs.addSystem(&IMUI2C);   
+  state_adcs.addSystem(&IMUSPI);
+  state_adcs.addSystem(&MotorX);
+  state_adcs.addSystem(&MotorY);
+  state_adcs.addSystem(&MotorZ);
   
-    state_detumble.addSystem(&MT);
- 
-    
-    state_adcs.addSystem(&RW);
-    state_adcs.addSystem(&MagX);
-    state_adcs.addSystem(&MagY);
-    state_adcs.addSystem(&MagZ);
-    state_adcs.addSystem(&IMUI2C);   
-    state_adcs.addSystem(&IMUSPI);
-    state_adcs.addSystem(&MotorX);
-    state_adcs.addSystem(&MotorY);
-    state_adcs.addSystem(&MotorZ);
-    
-    state_payload.addSystem(&Phone);
- 
-   state_core.addSystem(&Radio2);
-   state_core.addSystem(&Power);
-   state_core.setup();  
+  state_payload.addSystem(&Phone);
   
-  CMsg msg;
-  msg.setSYS("MGR");
-  msg.setACT("CMD_GPS_OUTPUT");   
-// Mgr.addMessageList(msg);
-
-  msg.setSYS("MGR");
-  msg.setACT("CMD_IRX1_OUTPUT");   
-//  Mgr.addMessageList(msg);
-
-  msg.setSYS("MGR");
-  msg.setACT("SHOWCOMMANDS");   
-// Mgr.addMessageList(msg);
-
-  msg.setSYS("SYSTEMMGR");
-  msg.setACT("I2C1");
-  Mgr.addMessageList(msg);
-  CMsg msg;
-  msg.setSYS("EXAMPLE");
-  msg.setACT("START");
-  Mgr.addMessageList(msg);
-*/
+  state_core.addSystem(&Radio2);
+  state_core.addSystem(&Power);
+  state_core.setup();  
+  */
 
 readCounts();  
 }
