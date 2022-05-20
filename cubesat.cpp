@@ -55,11 +55,16 @@ void(* resetFunc) (void) = 0; //declare reset function @ address 0
 #endif
 
 void CSatellite::newMsg(CMsg &msg) {
+  
   std::string sys=msg.getSYS();
   std::string act=msg.getACT();
 
+  writeconsoleln("----------------------------------CSatellite::newMsg(CMsg &msg)");
+  msg.writetoconsole();
+
   if(sys=="SAT") {    
     if(act=="STATS") stats();
+    if(act=="SYSMAP") readSysMap();
     if(act=="RESET") resetFunc();
     if(act=="COUNTS") readCounts();   
     if(act=="BEACON") sendBeacon();   
@@ -69,9 +74,9 @@ void CSatellite::newMsg(CMsg &msg) {
     if(act=="NEWSTATE") newState(msg);
     }    
  
-    else{
+    else{      
       CSystemObject *psys=getSystem(sys.c_str(),"CSatellite::newMsg(CMsg &msg)");
-      if(psys!=nullptr){    
+      if(psys!=nullptr){             
          psys->newMsg(msg);       
         }    
     } 
@@ -211,15 +216,7 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   MagY.config(MAG_ADDRESS_Y,&Wire2);  
   MagZ.config(MAG_ADDRESS_Z,&Wire2);
 
-/*
-  state_normal.addSystem(&IR);
-  state_normal.addSystem(&IRX1);
-  state_normal.addSystem(&IRX2);
-  state_normal.addSystem(&IRY1);
-  state_normal.addSystem(&IRY2);
-  state_normal.addSystem(&IRZ1);
-  state_normal.addSystem(&IRZ2);
-             
+/*             
   state_detumble.addSystem(&IMUI2C);   
   state_detumble.addSystem(&IMUSPI);   
   state_detumble.addSystem(&MT);
@@ -227,9 +224,6 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   state_adcs.addSystem(&RW);
   state_adcs.addSystem(&IMUI2C);   
   state_adcs.addSystem(&IMUSPI);
-  state_adcs.addSystem(&MotorX);
-  state_adcs.addSystem(&MotorY);
-  state_adcs.addSystem(&MotorZ);
   
   state_payload.addSystem(&Phone);
   
@@ -270,7 +264,7 @@ void CSatellite::readCounts() {
   msg.setParameter("BURNS",state_deployantenna._burncount);
   msg.setParameter("DETUMBLES",state_detumble._detumblecount);
   
-  Mgr.addTransmitList(msg);   
+  addTransmitList(msg);   
   #endif
 }
 
@@ -282,20 +276,25 @@ void CSatellite::MsgPump() {
 	MSG.moveReceived();
   int count=0;
   while(  MSG.MessageList.size()){
+    writeconsoleln("MsgPump()");
     count++;
     if(count>20)
       break;
-    msg = MSG.MessageList.back();
-    MSG.MessageList.pop_back();
+    msg = MSG.MessageList.front();
+    MSG.MessageList.pop_front();
     if(msg.Parameters.size()){
       
       newMsg(msg);   //Satellite
+
+      /*
       state_core.newMsg(msg);   //core
       if(msg.getParameter("PROCESSED","")=="1"){
         writeconsole(msg.getParameter("PROCESSED",""));writeconsoleln("______________________  CSatellite::MsgPump Processed  _______________________");
         continue;
       }
   	  pstate->newMsg(msg);   //Current State      
+      */
+      
     }
 	}
 
@@ -330,6 +329,30 @@ void CSatellite::updateRadios(CMsg &msg){
     }
 }
 
+void CSatellite::readSysMap(){
+  writeconsoleln("SysMap List:");
+  std::string str;
+  std::string strName="SYSMAP";
+  
+  for(auto s:SysMap){
+    writeconsoleln(s.first);    
+    str+=s.first;
+    if(str.size()>150){
+      CMsg m;
+      m.setLOG("SYSTEMS");
+      m.setParameter(strName,str);    
+      writeconsoleln(str);
+      addTransmitList(m);      
+      str="";      
+    }
+  }
+  
+  CMsg m;
+  m.setLOG("SYSTEMS");
+  m.setParameter(strName,str);    
+  writeconsoleln(str);
+  addTransmitList(m);
+}
 
 void CSatellite::sendBeacon(){  
   CMsg msg;

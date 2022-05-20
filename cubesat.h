@@ -95,6 +95,7 @@ class CSatellite:public CSystemObject {
  
 	void setup();  
   void readCounts();
+  void readSysMap();
   void sendBeacon();
 	void loop();
 	void stats();

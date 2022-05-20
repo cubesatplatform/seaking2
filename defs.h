@@ -56,4 +56,4 @@
 #define DETUMBLE_FILE "dtcount.txt"
 #define RS_FILE "rscount.txt"
 
-#define WATCHDOG_LOOP_COUNT 100000
+#define WATCHDOG_LOOP_COUNT 30000

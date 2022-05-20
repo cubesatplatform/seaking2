@@ -1,6 +1,5 @@
 #include "defs.h"
 #include "cubesat.h"
-#include <satwatchdog.h>
 
 #include <map>
 #include <list>
@@ -30,7 +29,6 @@ std::map<std::string, PinName> pwmPins;
 
 std::map<std::string, std::string> I2CMap;
 
-CSatWatchdog satdog;
 CSatellite sat;
 
 std::string CSystemObject::_IAM="ADR1";
@@ -80,7 +78,6 @@ void setup() {
   }
 
 void mysetup() {   
-  satdog.setup();
   
   while (!Serial&&(getTime()<10000))  ;
   writeconsoleln("Starting...");
@@ -124,19 +121,17 @@ void loop() {
 
 
   while(1){   
+     #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)
+      if(count%WATCHDOG_LOOP_COUNT==0) mbed::Watchdog::get_instance().kick();   
+    #endif
     sat.loop();  
     count++; 
     if(count>4*WATCHDOG_LOOP_COUNT){  
-      #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)
-        mbed::Watchdog::get_instance().kick();   
-      #endif
-          
       CMsg m;
       m.setSYS(sat.pstate->Name()); 
       #if defined(TTGO) || defined(TTGO1)
       m.setParameter("FREEHEAP",(long)ESP.getFreeHeap());
-      #endif
-      satdog.loop();    
+      #endif      
       count=0;        
       writeconsoleln(m.serializeout());
       superSleepRadio();
