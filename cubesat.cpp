@@ -77,8 +77,11 @@ void CSatellite::newMsg(CMsg &msg) {
     else{      
       CSystemObject *psys=getSystem(sys.c_str(),"CSatellite::newMsg(CMsg &msg)");
       if(psys!=nullptr){             
+        writeconsole("Sending new message to :");writeconsoleln(psys->Name());
          psys->newMsg(msg);       
         }    
+      else
+        writeconsoleln("Couldn't find system to send message to.");
     } 
 }
 
@@ -146,14 +149,16 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   Radio.Name("RADIO");
   Radio.setTransmitter(true);
 
+
   #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)
     Radio2.Name("RADIO2");
     Radio2.setTransmitter(false);
     state_core.addSystem(&Radio2);
   #endif
 
+
   state_core.addSystem(&Radio);  
-  state_core.addSystem(&Mgr);  
+  state_core.addSystem(&Mgr);    
   
   state_payload.addSystem(&Phone);  
   //state_core.addSystem(&RW);    //RW needs to be in core because if you are running it you cant switch states and turn it off
@@ -282,19 +287,8 @@ void CSatellite::MsgPump() {
       break;
     msg = MSG.MessageList.front();
     MSG.MessageList.pop_front();
-    if(msg.Parameters.size()){
-      
-      newMsg(msg);   //Satellite
-
-      /*
-      state_core.newMsg(msg);   //core
-      if(msg.getParameter("PROCESSED","")=="1"){
-        writeconsole(msg.getParameter("PROCESSED",""));writeconsoleln("______________________  CSatellite::MsgPump Processed  _______________________");
-        continue;
-      }
-  	  pstate->newMsg(msg);   //Current State      
-      */
-      
+    if(msg.Parameters.size()){      
+      newMsg(msg);   //Satellite      
     }
 	}
 

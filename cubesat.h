@@ -56,8 +56,9 @@ class CSatellite:public CSystemObject {
 
   CSystemMgr Mgr;
   CEPS Power;
-  CRadio Radio; 
   CRadio Radio2; 
+  CRadio Radio; 
+  
   CIMU IMUI2C;   
   CIMU IMUSPI;
 
