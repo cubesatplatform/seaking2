@@ -6,6 +6,8 @@
 #include <state_detumble.h>
 #include <state_deployantenna.h>
 #include <state_payload.h>
+#include <state_adcs.h>
+
 
 #include <system_imu.h>
 #include <system_delay.h>
@@ -34,18 +36,14 @@ class CSatellite:public CSystemObject {
 
   int _restartcount=0;
 	unsigned long lcount=0;
-  //CCoreState state_core;
-  //CNormalState state_normal;        //1
-  //CADCSState state_adcs;   //3
-  //CDeployAntennaState state_deployantenna;   //2  
-  //CLowPowerState state_lowpower;   //0
   
   CStateObj state_core;
-  CStateObj state_normal; 
-  CStateObj state_adcs;   //3
-  CStateObj state_lowpower;   //0
+  CStateObj state_normal;        
+  CStateObj state_lowpower;   
   
-  CDeployAntennaState state_deployantenna;   //2    
+  CADCSState state_adcs;     
+
+  CDeployAntennaState state_deployantenna;  
   CDetumbleState state_detumble;	
   CPayloadState state_payload;
 

@@ -115,6 +115,8 @@ void CSatellite::stats(){
 }
 
 void CSatellite::setup() {    //Anything not in a loop must be setup manually  or have setup done automatically when called
+
+
   state_adcs.Name("ADCS");
   state_adcs.setMaxTime(3*TIMEORBIT);
   state_adcs.availablesystems["MT"] = true;
@@ -132,15 +134,26 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   state_normal.setMaxTime(NORMALMAXTIME);
   state_normal.availablesystems["GPS"] = true;
   state_normal.availablesystems["DATAREQUEST"] = true;
+  state_normal.onEnter["ENABLESENSORS"]=true;
+  state_normal.onExit["DISABLESENSORS"]=true;
 
   state_deployantenna.Name("DEPLOY");
   state_deployantenna.setMaxTime(10000);
   state_deployantenna.onEnter["ENABLEBURNWIRE"]=true;
   state_deployantenna.onExit["DISABLEBURNWIRE"]=true;
 
+
+  state_adcs.Name("ADCS");
+  state_adcs.setMaxTime(2*TIMEORBIT);
+  state_adcs.onEnter["ENABLE65V"]=true;
+  state_adcs.onEnter["ENABLEMBLOGIC"]=true;
+  state_adcs.onExit["DISABLE65V"]=true;
+  state_adcs.onExit["DISABLEMBlogic"]=true;
+
+  
   state_lowpower.Name("LOWPOWER");
   state_lowpower.setMaxTime(LOWPOWERMAXTIME);
-  state_lowpower.onEnter["DISABLEMAGSMOTORS"]=true;
+  state_lowpower.onEnter["DISABLE65V"]=true;
   state_lowpower.onEnter["DISABLEBURNWIRE"]=true;
   state_lowpower.onEnter["DISABLESENSORS"]=true;
   state_lowpower.onEnter["DISABLEPHONE"]=true;
@@ -148,6 +161,7 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   
   Radio.Name("RADIO");
   Radio.setTransmitter(true);
+  Radio.setReceiver(false);
 
 
   #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)

@@ -30,7 +30,7 @@
 
 
 #define IMUADDRESS1  0x4B    //==75
-//#define IMUADDRESS2  0x4A
+#define TEMP_OBC 0x4A
 
 #define EPS_ADDRESS 0x18
 #define IRARRAY_ADDRESS_X1  0x33    //NEVER EVER USER 34 ON TBEAM!!!!@#!@#!@#!@
@@ -45,7 +45,7 @@
 #define TEMP_Y2 0x49
 #define TEMP_Z1 0x48
 #define TEMP_Z2 0x49
-#define TEMP_OBC 0x4A
+
 //#define TEMP_ADCS 0x4B
 
 #define MAG_ADDRESS_X  0x60
