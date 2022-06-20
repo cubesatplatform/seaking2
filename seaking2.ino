@@ -5,6 +5,8 @@
 #include <list>
 #include <bitset>
 
+#include <sdfs.h>
+
 
 #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)
   #include "mbed.h"
@@ -109,9 +111,9 @@ void superSleepRadio(){
 }
 
 
-void loop() {  
+void loop() {    
   mysetup(); 
-  unsigned count=0;
+  unsigned long count=0;
   CMsg msg;
   msg.setSYS("BASE");
   msg.setACT("This is Major Tom to Ground Control");   
@@ -121,20 +123,14 @@ void loop() {
 
 
   while(1){   
-     #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)
-      if(count%WATCHDOG_LOOP_COUNT==0) mbed::Watchdog::get_instance().kick();   
-    #endif
+
     sat.loop();  
     count++; 
-    if(count>4*WATCHDOG_LOOP_COUNT){  
-      CMsg m;
-      m.setSYS(sat.pstate->Name()); 
-      #if defined(TTGO) || defined(TTGO1)
-      m.setParameter("FREEHEAP",(long)ESP.getFreeHeap());
-      #endif      
-      count=0;        
-      writeconsoleln(m.serializeout());
-      superSleepRadio();
-    }     
+    #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)
+      if(count%WATCHDOG_LOOP_COUNT==0) mbed::Watchdog::get_instance().kick();   
+    #endif 
+ 
+   //   superSleepRadio();
+        
   }      
 }

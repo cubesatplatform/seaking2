@@ -1,7 +1,8 @@
 #include "cubesat.h"
-#include <portentafs.h>
 
-void CSatellite::loop() {   
+void CSatellite::loop() {  
+    lcount++;
+
     MsgPump();  
     pstate->loop();     
     state_core.loop();   
@@ -43,46 +44,6 @@ void CSatellite::addState(CMsg &msg){
     pSO->setForever(false);
     pSO->setMaxTime(lmax);
   }  
-}
-
-
-#if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)
-void resetFunc(){
-  NVIC_SystemReset();
-}
-#else
-void(* resetFunc) (void) = 0; //declare reset function @ address 0
-#endif
-
-void CSatellite::newMsg(CMsg &msg) {
-  
-  std::string sys=msg.getSYS();
-  std::string act=msg.getACT();
-
-  writeconsoleln("----------------------------------CSatellite::newMsg(CMsg &msg)");
-  msg.writetoconsole();
-
-  if(sys=="SAT") {    
-    if(act=="STATS") stats();
-    if(act=="SYSMAP") readSysMap();
-    if(act=="RESET") resetFunc();
-    if(act=="COUNTS") readCounts();   
-    if(act=="BEACON") sendBeacon();   
-    if(act=="UPDATERADIOS") updateRadios(msg);
-    if(act=="ADDSYSTEM") addSystem(msg);
-    if(act=="ADDSTATE") addState(msg);
-    if(act=="NEWSTATE") newState(msg);
-    }    
- 
-    else{      
-      CSystemObject *psys=getSystem(sys.c_str(),"CSatellite::newMsg(CMsg &msg)");
-      if(psys!=nullptr){             
-        writeconsole("Sending new message to :");writeconsoleln(psys->Name());
-         psys->newMsg(msg);       
-        }    
-      else
-        writeconsoleln("Couldn't find system to send message to.");
-    } 
 }
 
 
@@ -173,6 +134,8 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
 
   state_core.addSystem(&Radio);  
   state_core.addSystem(&Mgr);    
+
+//  state_normal.addSystem(&MotorX);  
   
   state_payload.addSystem(&Phone);  
   //state_core.addSystem(&RW);    //RW needs to be in core because if you are running it you cant switch states and turn it off
@@ -251,42 +214,40 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   state_core.setup();  
   */
 
+ mountFS();
+ delay(100);
 readCounts();  
+_restartcount++;
+writeCounts();  
 }
-
 
 void CSatellite::readCounts() {
-  #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)    
-  if(1){
-     CFS fs;    
-     fs.setFilename(BURNCOUNT_FILE);
-     state_deployantenna._burncount=fs.readFile();    
-  }
-  if(1){
-     CFS fs;
-     fs.setFilename(DETUMBLE_FILE);
-     state_detumble._detumblecount=fs.readFile();      
-  }
-  if(1){
-     CFS fs;  
-     fs.setFilename(RS_FILE);
-     _restartcount=fs.readFile();     
-     _restartcount++;
-     fs.deleteFile(); 
-     fs.writeFile(_restartcount);    
-  }
+  msgCounts.deserializeFile(SATCOUNTS_FILE);
+
+  _restartcount=msgCounts.getParameter("RESTARTS",_restartcount);
+  state_deployantenna._burncount=msgCounts.getParameter("BURNS",state_deployantenna._burncount);
+  state_detumble._detumblecount=msgCounts.getParameter("DETUMBLES",state_detumble._detumblecount);
 
   
-  CMsg msg;
-  msg.setTABLE("INFO");
-  msg.setParameter("RESTARTS",_restartcount);
-  msg.setParameter("BURNS",state_deployantenna._burncount);
-  msg.setParameter("DETUMBLES",state_detumble._detumblecount);
-  
-  addTransmitList(msg);   
-  #endif
+  msgCounts.writetoconsole();
+  addTransmitList(msgCounts);   
 }
 
+
+void CSatellite::sendCounts() {  
+  addTransmitList(msgCounts);   
+}
+
+
+
+void CSatellite::writeCounts() {  
+  msgCounts.setSYS("satcounts");
+  msgCounts.setParameter("RESTARTS",_restartcount);
+  msgCounts.setParameter("BURNS",state_deployantenna._burncount);
+  msgCounts.setParameter("DETUMBLES",state_detumble._detumblecount);
+  std::string fn=msgCounts.serializeFile(SATCOUNTS_FILE);
+  addTransmitList(msgCounts);   
+}
 
 
 void CSatellite::MsgPump() {
@@ -336,6 +297,7 @@ void CSatellite::updateRadios(CMsg &msg){
       }    
     }
 }
+
 
 void CSatellite::readSysMap(){
   writeconsoleln("SysMap List:");

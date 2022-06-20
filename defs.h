@@ -52,8 +52,4 @@
 #define MAG_ADDRESS_Y  0x61
 #define MAG_ADDRESS_Z  0x63
 
-#define BURNCOUNT_FILE "burncount.txt"
-#define DETUMBLE_FILE "dtcount.txt"
-#define RS_FILE "rscount.txt"
-
-#define WATCHDOG_LOOP_COUNT 30000
+#define WATCHDOG_LOOP_COUNT 1000

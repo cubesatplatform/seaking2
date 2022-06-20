@@ -1,5 +1,13 @@
 #pragma once
+
+#if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7) 
+ // #include "mbed.h"
+#endif  
+
+
 #include "defs.h"
+#include "sdfs.h"
+#include "csfilenames.h"
 
 #include <messages.h>
 
@@ -32,9 +40,10 @@
 
 class CSatellite:public CSystemObject {
   public:
-	std::list<CSystemObject*> coresystems;
+  CMsg msgCounts;
+  	std::list<CSystemObject*> coresystems;
 
-  int _restartcount=0;
+  int _restartcount=0;  
 	unsigned long lcount=0;
   
   CStateObj state_core;
@@ -94,8 +103,10 @@ class CSatellite:public CSystemObject {
  
 	void setup();  
   void readCounts();
+  void sendCounts();
+  void writeCounts();
   void readSysMap();
-  void sendBeacon();
+  void sendBeacon();  
 	void loop();
 	void stats();
   void temp();
