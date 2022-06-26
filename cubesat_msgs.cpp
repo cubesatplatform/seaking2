@@ -35,9 +35,10 @@ void CSatellite::newMsg(CMsg &msg) {
     if(act=="FORMATFS") formatFS();    
     if(act=="DELETEFILE") {std::string path=msg.getParameter("PATH");  deleteFile(path.c_str()); }   
     if(act=="DELETEFILES") {std::string path=msg.getParameter("PATH");  deleteFiles(path.c_str()); }   
-    if(act=="WRITEFILE") {std::string path=msg.getParameter("PATH");  writeFile(path.c_str(),msg.serialize().c_str(),msg.serialize().size()); }   
+    if(act=="WRITEFILE") {std::string path=msg.getParameter("PATH");  writeFile(path.c_str(),(const unsigned char *)msg.serialize().c_str(),msg.serialize().size()); }   
     if(act=="APPENDFILE") {std::string path=msg.getParameter("PATH"); std::string path1=msg.getParameter("PATH1");   appendFile(path.c_str(),path1.c_str()); }   
     if(act=="READFILE") {std::string str,path=msg.getParameter("PATH"); str=readFile(path.c_str()); CMsg m(str);  addTransmitList(m); }   
+    if(act=="READFILEBINARY") {std::string str,path=msg.getParameter("PATH"); CMsg m; str=readFileBinary(path.c_str(),&m.byteVector);   addTransmitList(m); }   
     if(act=="LISTDIR"){std::string str,path=msg.getParameter("PATH");CMsg m=listDir(path.c_str());    addTransmitList(m);}
     }    
 
