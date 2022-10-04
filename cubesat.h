@@ -1,42 +1,43 @@
 #pragma once
 
-#if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7) 
- // #include "mbed.h"
-#endif  
-
-
 #include "defs.h"
 #include "sdfs.h"
 #include "csfilenames.h"
 
 #include <messages.h>
 
+#if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)   
+  
+#else
+  #include <system_gps.h>
+#endif  
+
+
 #include <state_detumble.h>
 #include <state_deployantenna.h>
 #include <state_payload.h>
 #include <state_adcs.h>
-
+#include <ceps.h>
+#include <system_reactionwheel.h>
+#include <system_magtorquer.h>
+#include <system_temperature.h>
+#include <mdrive.h>
+#include <fhmotor.h>
 
 #include <system_imu.h>
 #include <system_delay.h>
 #include <system_relay.h>
-#include <system_irarray.h>
-#include <system_reactionwheel.h>
-#include <system_magtorquer.h>
-#include <system_temperature.h>
+
 #include <radio.h>
 #include <messages.h>
-#include <mdrive.h>
-#include <fhmotor.h>
 #include <system_mgr.h>
+#include <system_irarray.h>
 #include <phone.h>
-#include <ceps.h>
-
-#include <system_pins.h>
-#include <system_gps.h>
 
 
-//#include "system_example.h"
+
+#define POWERKEY  "POWERKEY"
+
 
 class CSatellite:public CSystemObject {
   public:
@@ -50,33 +51,28 @@ class CSatellite:public CSystemObject {
   CStateObj state_normal;        
   CStateObj state_lowpower;   
   
-  CADCSState state_adcs;     
-
-  CDeployAntennaState state_deployantenna;  
-  CDetumbleState state_detumble;	
-  CPayloadState state_payload;
-
-#if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7) 
-#else 
-   CGPS gps;
-#endif  
-
-  CSystemMgr Mgr;
   CEPS Power;
-  CRadio Radio2; 
-  CRadio Radio; 
-  
-  CIMU IMUI2C;   
   CIMU IMUSPI;
 
-  CDelay Delay;
-  CRelay Relay;
+#if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7) 
   
+
+  
+  CRadio Radio2; 
+  
+  
+#else 
+  #define Radio2 Radio  
+  CGPS gps;
+#endif  
+
+  CADCSState state_adcs;     
+  CDeployAntennaState state_deployantenna;  
+  CDetumbleState state_detumble;  
+  CPayloadState state_payload;
   CRW RW;
   CMagTorquer MT;
-
   CPhone Phone;  
-  
   CMDrive MagX;
   CMDrive MagY;
   CMDrive MagZ;
@@ -84,12 +80,18 @@ class CSatellite:public CSystemObject {
   CMotorController MotorX;
   CMotorController MotorY;
   CMotorController MotorZ;
-
-  CSatPins SatPins;
   
   CTemperatureObject TempX1,TempX2,TempY1,TempY2,TempZ1,TempZ2, TempOBC;
-
+  
   CIRArray IRX1,IRX2,IRY1,IRY2,IRZ1,IRZ2;
+
+  CSystemMgr Mgr;
+  CRadio Radio;   
+  CIMU IMUI2C;   
+  
+  CDelay Delay;
+  CRelay Relay;
+  
   
   CStateObj* pstate;
 	//std::bitset<10> satflag;  //initialized to 0  enum some flags HEALTHCHECK,TEMP, etc    satflag[HEALTHCHECK]
@@ -113,6 +115,10 @@ class CSatellite:public CSystemObject {
 	void MsgPump();
   void updateRadios(CMsg &msg);
   void addSystem(CMsg &msg);
+
+  
+  void callCustomFunctions(CMsg &msg); 
+
 };
 
 CSatellite* getSatellite();

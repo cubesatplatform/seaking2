@@ -26,10 +26,7 @@
 #define WATCHDOGWAIT 32760  //This is the Max the Portenta can do
 
 std::map<std::string,CSystemObject *> SysMap;
-std::map<std::string, PinName> Pins;
-std::map<std::string, PinName> pwmPins;
 
-std::map<std::string, std::string> I2CMap;
 
 CSatellite sat;
 
@@ -118,8 +115,6 @@ void loop() {
   msg.setSYS("BASE");
   msg.setACT("This is Major Tom to Ground Control");   
   sat.addTransmitList(msg);
-
-
 
 
   while(1){   
