@@ -1,4 +1,3 @@
-#include "defs.h"
 #include "cubesat.h"
 
 #include <map>
@@ -30,7 +29,9 @@ std::map<std::string,CSystemObject *> SysMap;
 
 CSatellite sat;
 
-std::string CSystemObject::_IAM="ADR1";
+#define IAM "ADR1"
+
+std::string CSystemObject::_IAM=IAM;
 std::string CSystemObject::_defaultTO="ALL";
 unsigned long CSystemObject::_lastLowPowerMsg=0;
 CMessages* getMessages() { return &sat.MSG; }
@@ -38,9 +39,8 @@ CSatellite* getSatellite() { return &sat; }
 std::string getSatState() { return sat.pstate->Name(); }
 
 
-
- 
 void setup() { 
+  sat.Name(IAM);
   Serial.begin(115200);
   long tt=getTime();
   while (!Serial){

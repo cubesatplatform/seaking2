@@ -11,8 +11,8 @@ void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
 
 
-
 void CSatellite::callCustomFunctions(CMsg &msg)  {  //Used to be NewMsg
+  CStateObj::callCustomFunctions(msg);
   
   std::string sys=msg.getSYS();
   std::string act=msg.getACT();
@@ -26,9 +26,9 @@ void CSatellite::callCustomFunctions(CMsg &msg)  {  //Used to be NewMsg
   if(act=="SENDCOUNTS") sendCounts();   
   if(act=="READCOUNTS") readCounts();   
   if(act=="WRITECOUNTS") writeCounts();   
-  if(act=="BEACON") sendBeacon();   
+  
   if(act=="UPDATERADIOS") updateRadios(msg);
-  if(act=="ADDSYSTEM") addSystem(msg);
+  
   if(act=="ADDSTATE") addState(msg);
   if(act=="NEWSTATE") newState(msg);    
 
@@ -45,20 +45,7 @@ void CSatellite::callCustomFunctions(CMsg &msg)  {  //Used to be NewMsg
   if(act=="FILESIZE") {std::string str,path=msg.getParameter("PATH"); CMsg m=fileSize(path.c_str());   addTransmitList(m); }   
  #endif
 
-/*
-    else{      
-      CSystemObject *psys=getSystem(sys.c_str(),"CSatellite::newMsg(CMsg &msg)");
-      if(psys!=nullptr){             
-        writeconsole("Sending new message to :");writeconsoleln(psys->Name());
-         psys->newMsg(msg);       
-        }    
-      else
-        writeconsoleln("Couldn't find system to send message to.");
-    } 
-    */
 }
-
-
 
 
 void CSatellite::updateRadios(CMsg &msg){  
@@ -114,83 +101,36 @@ void CSatellite::readSysMap(){
   addTransmitList(m);
 }
 
-void CSatellite::sendBeacon(){  
-  CMsg msg;
-  msg.setParameter("STATE",getSatState());
-  msg.setParameter("TIME",getTime());
-
- 
-  CMsg m=getDataMap(POWERKEY);
-  
-  msg.setParameter("BatteryVolt",m.getParameter("BatteryVolt"));
-  msg.setParameter("BatteryCrnt",m.getParameter("BatteryCrnt"));
-  msg.setParameter("BatTemp1",m.getParameter("BatTemp1"));
-  msg.setParameter("XVolt",m.getParameter("XVolt"));
-  msg.setParameter("YVolt",m.getParameter("YVolt"));
-  msg.setParameter("ZVolt",m.getParameter("ZVolt"));
-
-
-
-  CRadio *pRadio=(CRadio *)getSystem("RADIO");
-  CRadio *pRadio2=(CRadio *)getSystem("RADIO2");
-  if(pRadio!=NULL){
-    msg.setParameter("R_STATE",pRadio->State());
-  }
-  
-  if(pRadio2!=NULL){
-    msg.setParameter("R2_STATE",pRadio2->State());
-  }
-
-  CTemperatureObject *pTemp=(CTemperatureObject *)getSystem("TEMPOBC","TEMPOBC");  
-  
-  if(pTemp!=NULL) {    
-    pTemp->setup();    
-    pTemp->loop();
-    msg.setParameter("TEMPOBC",pTemp->getTemp()); 
-  }
-  addTransmitList(msg);
-}
 
 
 void CSatellite::stats(){  
-  CMsg msg;  
+  CMsg msg=getDataMap(std::string("SAT")); 
   msg.setParameter("TIME",getTime());
-  
-  msg.setParameter("RESETS",_restartcount);
-  msg.setParameter("BURNS",state_deployantenna._burncount);
-  msg.setParameter("DTBL",state_detumble._detumblecount);
-  
+    
   msg+=state_core.stats();  
   msg+=pstate->stats();  
-
-
-  addTransmitList(msg);    
+  addTransmitList(msg);      
 }
 
 void CSatellite::readCounts() {
+  CMsg msgCounts;
   msgCounts.deserializeFile(SATCOUNTS_FILE);
+  addDataMap(std::string("SAT"),msgCounts);
 
-  _restartcount=msgCounts.getParameter("RESTARTS",_restartcount);
-  state_deployantenna._burncount=msgCounts.getParameter("BURNS",state_deployantenna._burncount);
-  state_detumble._detumblecount=msgCounts.getParameter("DETUMBLES",state_detumble._detumblecount);
-
-  
   msgCounts.writetoconsole();
   addTransmitList(msgCounts);   
 }
 
 
 void CSatellite::sendCounts() {  
-  addTransmitList(msgCounts);   
+  CMsg msg=getDataMap(std::string("SAT")); 
+  addTransmitList(msg);   
 }
 
 
-
 void CSatellite::writeCounts() {  
-  msgCounts.setSYS("satcounts");
-  msgCounts.setParameter("RESTARTS",_restartcount);
-  msgCounts.setParameter("BURNS",state_deployantenna._burncount);
-  msgCounts.setParameter("DETUMBLES",state_detumble._detumblecount);
+  CMsg msgCounts=getDataMap(std::string("SAT")); 
+  
   std::string fn=msgCounts.serializeFile(SATCOUNTS_FILE);
   addTransmitList(msgCounts);   
 }

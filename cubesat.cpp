@@ -11,8 +11,6 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
 
   state_normal.Name("NORMAL");
   state_normal.setMaxTime(NORMALMAXTIME);
-  state_normal.availablesystems["GPS"] = true;
-  state_normal.availablesystems["DATAREQUEST"] = true;
   state_normal.onEnter["ENABLESENSORS"]=true;
   state_normal.onExit["DISABLESENSORS"]=true;
 
@@ -23,14 +21,7 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
 
   state_adcs.Name("ADCS");
   state_adcs.setMaxTime(3*TIMEORBIT);
-  state_adcs.availablesystems["MT"] = true;
-  state_adcs.availablesystems["MAGX"] = true;
-  state_adcs.availablesystems["MAGY"] = true;
-  state_adcs.availablesystems["MAGZ"] = true;
-  state_adcs.availablesystems["MOTORX"] = true;
-  state_adcs.availablesystems["MOTORY"] = true;
-  state_adcs.availablesystems["MOTORZ"] = true;
-
+  
   state_deployantenna.Name("DEPLOY");
   state_deployantenna.setMaxTime(10000);
   state_deployantenna.onEnter["ENABLEBURNWIRE"]=true;
@@ -107,13 +98,13 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   
   state_core.addSystem(&Radio2);
   state_core.addSystem(&Power);
+  
   state_core.setup();  
 
   //  state_normal.addSystem(&MotorX);  
 
   state_payload.addSystem(&Phone);  
-  //state_core.addSystem(&RW);    //RW needs to be in core because if you are running it you cant switch states and turn it off
-  //state_lowpower.addSystem(&Delay);   //May be a bad idea!!!
+  //state_core.addSystem(&RW);    //RW needs to be in core because if you are running it you cant switch states and turn it off  
 
     
   #if defined(ARDUINO_PORTENTA_H7_M4) || defined(ARDUINO_PORTENTA_H7_M7)
@@ -137,6 +128,9 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
   state_core.addSystem(&Radio);  
   state_core.addSystem(&Mgr);    
   state_core.addSystem(&MSG);   
+  state_core.addSystem(&Sch);
+
+  Sch.initSat();  //Commands that are autoscheduled
 
 
   IMUI2C.Name("IMUI2C");   
@@ -152,9 +146,7 @@ void CSatellite::setup() {    //Anything not in a loop must be setup manually  o
 
 
 void CSatellite::loop() {  
-    lcount++;
-
-   // MsgPump();  
+    lcount++;   
     pstate->loop();     
     state_core.loop();   
     if(pstate->outOfTime()){
@@ -192,44 +184,3 @@ void CSatellite::addState(CMsg &msg){
     pSO->setMaxTime(lmax);
   }  
 }
-
-
-
-void CSatellite::addSystem(CMsg &msg) {
-  std::string strstate=msg.getParameter("STATE");
-  std::string strsystem=msg.getParameter("SYSTEM");
-
-  CSystemObject *psys=getSystem(strsystem.c_str(),"addSystem(CMsg &msg)  System");
-  CStateObj *pstate=(CStateObj *)getSystem(strstate.c_str(),"addSystem(CMsg &msg)  State");
-  
-  if((psys!=nullptr)&&(pstate!=nullptr)){    
-     pstate->addSystem(psys);    
-    }
-}
-
-
-
-
-
-/*  //Putting this into CMessage::Loop
-void CSatellite::MsgPump() {
-	//Gets messages receieved from radio, pushes to message list and then pumps them out
-  CMsg msg;
-	MSG.moveReceived();
-  int count=0;
-  while(  MSG.MessageList.size()){
-    writeconsoleln("MsgPump()");
-    count++;
-    if(count>20)
-      break;
-    msg = MSG.MessageList.front();
-    MSG.MessageList.pop_front();
-    if(msg.Parameters.size()){      
-      newMsg(msg);   //Satellite      
-    }
-	}
-
-	MSG.MessageList.clear();//Probable make sure messages have all been processed.  I think they will as only thing that can add messages should be the loop
-}
-
-*/
